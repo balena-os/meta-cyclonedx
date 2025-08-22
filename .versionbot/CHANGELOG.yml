@@ -1,0 +1,28 @@
+- commits:
+    - subject: "patch: add flowzone to the repo"
+      hash: 3da9e9cbd03ed84619ce560871d0195fd1f6fec3
+      body: ""
+      footer: {}
+      author: Edwin Joassart
+      nested: []
+    - subject: "patch: use file patch as CVE fix in VEX"
+      hash: dfa06592074aaba32f33c9ff808f3da6eae2d8d7
+      body: ""
+      footer: {}
+      author: Edwin Joassart
+      nested: []
+    - subject: "patch: fix readme"
+      hash: 0f37766e9cdcf4919d5be85abc54a7219aaf36cb
+      body: ""
+      footer: {}
+      author: Edwin Joassart
+      nested: []
+    - subject: "patch: improve readme"
+      hash: 05c545e2b55c9bd7630e909da062d13f9c38c265
+      body: ""
+      footer: {}
+      author: Edwin Joassart
+      nested: []
+  version: 0.0.2
+  title: ""
+  date: 2025-08-22T16:20:14.692Z
