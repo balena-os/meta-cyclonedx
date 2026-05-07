@@ -1,0 +1,29 @@
+- commits:
+    - subject: "minor: conf/layer: Mention wrynose compatibility"
+      hash: f6996b107b19539ab9c4288e05de745909f84acf
+      body: ""
+      footer: {}
+      author: Edwin Joassart
+      nested: []
+    - subject: "patch: add flowzone to the repo"
+      hash: c53a97b33d159a24bbf43e92b6e451cbe5d02a10
+      body: ""
+      footer: {}
+      author: Edwin Joassart
+      nested: []
+  version: 0.1.0
+  title: ""
+  date: 2026-05-07T15:49:26.036Z
+- version: 0.0.2
+  date: 2025-08-22T16:19:19Z
+  commits:
+    - hash: 6e6fea82ef0be71cf4cfc81ec4b950b1216e9ee2
+      author: Edwin Joassart
+      subject: "patch: add flowzone to the repo"
+      body: ""
+    - hash: efa75bc2dae956989d4bdb373f5a5d9f324935f8
+      author: Florin Sarbu
+      footers:
+        signed-off-by: Florin Sarbu <florin@balena.io>
+      subject: "layer.conf: Update LAYERSERIES_COMPAT to scarthgap"
+      body: ""
