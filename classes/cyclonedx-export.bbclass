@@ -237,51 +237,6 @@ def append_patches_to_vex(d, file, cves, bom_ref):
 
     return
 
-def decode_cve_status(d, cve):
-    """
-    Convert CVE_STATUS into status, detail and description.
-    
-    # from https://github.com/yoctoproject/poky/blob/styhead/meta/lib/oe/cve_check.py
-    # Copyright OpenEmbedded Contributors
-    # License: MIT
-    """
-
-    status = d.getVarFlag("CVE_STATUS", cve)
-    if not status:
-        return {}
-
-    status_split = status.split(':', 4)
-    status_out = {}
-    status_out["detail"] = status_split[0]
-    product = "*"
-    vendor = "*"
-    description = ""
-    if len(status_split) >= 4 and status_split[1].strip() == "cpe":
-        # Both vendor and product are mandatory if cpe: present, the syntax is then:
-        # detail: cpe:vendor:product:description
-        vendor = status_split[2].strip()
-        product = status_split[3].strip()
-        description = status_split[4].strip()
-    elif len(status_split) >= 2 and status_split[1].strip() == "cpe":
-        # Malformed CPE
-        bb.warn('Invalid CPE information for CVE_STATUS[%s] = "%s", not setting CPE' % (status_out['detail'], cve, status))
-    else:
-        # Other case: no CPE, the syntax is then:
-        # detail: description
-        description = status.split(':', 1)[1].strip() if (len(status_split) > 1) else ""
-
-    status_out["vendor"] = vendor
-    status_out["product"] = product
-    status_out["description"] = description
-
-    status_mapping = d.getVarFlag("CVE_CHECK_STATUSMAP", status_out['detail'])
-    if status_mapping is None:
-        bb.warn('Invalid detail "%s" for CVE_STATUS[%s] = "%s", fallback to Unpatched' % (status_out['detail'], cve, status))
-        status_mapping = "Unpatched"
-    status_out["mapping"] = status_mapping
-
-    return status_out
-
 python do_deploy_cyclonedx() {
     """
     Select CVE and package information and runtime packages and output them into a single export file.
