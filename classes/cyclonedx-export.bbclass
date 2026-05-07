@@ -86,6 +86,10 @@ python do_cyclonedx_package_collect() {
             for cve in (d.getVarFlags("CVE_STATUS") or {}):
                 append_to_vex(d, cve, cves, bom_ref)
 
+            # append any patched cve that has not been included in the CVE_STATUS yet
+            for file in (d.getVar("SRC_URI") or "").split():
+                append_patches_to_vex(d, file, cves, bom_ref)
+
     pn_list["cves"] = cves
 
     # write partial sbom to the recipes work folder
@@ -200,6 +204,83 @@ def append_to_vex(d, cve, cves, bom_ref):
         "affects": [{"ref": f"urn:cdx:{d.getVar('CYCLONEDX_SBOM_SERIAL_PLACEHOLDER')}/1#{bom_ref}"}]
     })
     return
+
+def append_patches_to_vex(d, file, cves, bom_ref):
+    """
+    Collect CVE status information from patches applied to the recipe
+    CVE patches has a file format such as `file://CVE-2024-3596_00.patch`
+    """
+
+    # check if the uri start with file://CVE- and end is a patch
+    if not file.startswith("file://CVE-") or not file.endswith(".patch"):
+        return
+
+    # Extract the CVE ID from the file path (without the _xx)
+    cve_id = file[len("file://"): -len(".patch")].split("_")[0]
+
+    # Check if the CVE is already listed as patched, and add the justification
+    for cve in cves:
+        if cve["id"] == cve_id:
+            cve["analysis"]["detail"] += f"\nJUSTIFICATION: patch found in {file}"
+            return
+
+    # Append the CVE ID to the list of CVEs
+    cves.append({
+        "id": cve_id,
+        "source": {"name": "NVD", "url": f"https://nvd.nist.gov/vuln/detail/{cve_id}"},
+        "analysis": {
+            "state": "resolved",
+            "detail": f"JUSTIFICATION: Patch applied from {file}",
+        },
+        "affects": [{"ref": f"urn:cdx:{d.getVar('CYCLONEDX_SBOM_SERIAL_PLACEHOLDER')}/1#{bom_ref}"}]
+    })
+
+    return
+
+def decode_cve_status(d, cve):
+    """
+    Convert CVE_STATUS into status, detail and description.
+    
+    # from https://github.com/yoctoproject/poky/blob/styhead/meta/lib/oe/cve_check.py
+    # Copyright OpenEmbedded Contributors
+    # License: MIT
+    """
+
+    status = d.getVarFlag("CVE_STATUS", cve)
+    if not status:
+        return {}
+
+    status_split = status.split(':', 4)
+    status_out = {}
+    status_out["detail"] = status_split[0]
+    product = "*"
+    vendor = "*"
+    description = ""
+    if len(status_split) >= 4 and status_split[1].strip() == "cpe":
+        # Both vendor and product are mandatory if cpe: present, the syntax is then:
+        # detail: cpe:vendor:product:description
+        vendor = status_split[2].strip()
+        product = status_split[3].strip()
+        description = status_split[4].strip()
+    elif len(status_split) >= 2 and status_split[1].strip() == "cpe":
+        # Malformed CPE
+        bb.warn('Invalid CPE information for CVE_STATUS[%s] = "%s", not setting CPE' % (status_out['detail'], cve, status))
+    else:
+        # Other case: no CPE, the syntax is then:
+        # detail: description
+        description = status.split(':', 1)[1].strip() if (len(status_split) > 1) else ""
+
+    status_out["vendor"] = vendor
+    status_out["product"] = product
+    status_out["description"] = description
+
+    status_mapping = d.getVarFlag("CVE_CHECK_STATUSMAP", status_out['detail'])
+    if status_mapping is None:
+        bb.warn('Invalid detail "%s" for CVE_STATUS[%s] = "%s", fallback to Unpatched' % (status_out['detail'], cve, status))
+        status_mapping = "Unpatched"
+    status_out["mapping"] = status_mapping
+
+    return status_out
 
 python do_deploy_cyclonedx() {
     """
